@@ -1,6 +1,7 @@
 package com.example.customer;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.slf4j.LoggerFactory;
@@ -41,13 +42,15 @@ public class CustomerController {
         Span span = tracer.buildSpan("/customer").startActive(false).span();
 
         // Inject span context
-        // TODO FIXME
         Map<String, String> parameters = new HashMap<>();
         tracer.inject(span.context(), Format.Builtin.HTTP_HEADERS, new TextMapInjectAdapter(parameters));
-        LOG.info("parameters: " + parameters);
-        String[] keys = parameters.keySet().toArray(new String[parameters.size()]);
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(keys[0], parameters.get(keys[0]));
+        HttpHeaders headers = new HttpHeaders();       
+        Iterator<String> iter = parameters.keySet().iterator();
+        while (iter.hasNext()) {
+            String key = iter.next();
+            headers.set(key, parameters.get(key));
+        }
+        LOG.info("headers: " + headers);
 
         // Call product service
         HttpEntity<String> entity = new HttpEntity<>(headers);
