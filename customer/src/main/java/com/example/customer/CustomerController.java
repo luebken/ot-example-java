@@ -35,7 +35,12 @@ public class CustomerController {
 
         LOG.info("entry /customer");
 
-        // Dummy result
+        // Dummy work
+        try {
+            Thread.sleep(50);
+        } catch(InterruptedException e){
+            //ignore
+        }
         String result = "Hello from Customer Service!";
         
         // Create root span
