@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import io.opentracing.Span;
+import io.opentracing.tag.Tags;
 import io.opentracing.propagation.Format;
 import io.opentracing.propagation.TextMapInjectAdapter;
-
 
 @RestController
 public class CustomerController {
@@ -38,18 +38,19 @@ public class CustomerController {
         // Dummy work
         try {
             Thread.sleep(50);
-        } catch(InterruptedException e){
+        } catch (InterruptedException e) {
             //ignore
         }
         String result = "Hello from Customer Service!";
-        
+
         // Create root span
-        Span span = tracer.buildSpan("/customer").startActive(false).span();
+        Span span = tracer.buildSpan("/customer").withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT)
+                .withTag(Tags.COMPONENT.getKey(), "springboot app").startActive(false).span();
 
         // Inject span context
         Map<String, String> parameters = new HashMap<>();
         tracer.inject(span.context(), Format.Builtin.HTTP_HEADERS, new TextMapInjectAdapter(parameters));
-        HttpHeaders headers = new HttpHeaders();       
+        HttpHeaders headers = new HttpHeaders();
         Iterator<String> iter = parameters.keySet().iterator();
         while (iter.hasNext()) {
             String key = iter.next();
@@ -59,10 +60,11 @@ public class CustomerController {
 
         // Call product service
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<String> response = restTemplate.exchange("http://localhost:8090/product", HttpMethod.GET, entity, String.class);
+        ResponseEntity<String> response = restTemplate.exchange("http://localhost:8090/product", HttpMethod.GET, entity,
+                String.class);
 
         result += " + " + response.getBody();
-        
+
         span.finish();
         return result;
     }
