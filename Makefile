@@ -17,9 +17,12 @@ run-customer: ## Run customer service
 run-product: ## Run product service
 	cd product; java -jar target/product-0.0.1-SNAPSHOT.jar --server.port=8090
 
-run-jaeger:
+run-jaeger: ## Run the Jaeger collector and UI
 	@echo "open http://localhost:16686"
 	docker run -p6831:6831/udp -p6832:6832/udp -p5778:5778 -p16686:16686 -p14268:14268 jaegertracing/all-in-one:latest
+
+test: ## Run example requests
+	curl localhost:8080/customer
 
 # via http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help: ##Shows help message
