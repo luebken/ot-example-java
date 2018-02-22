@@ -60,7 +60,7 @@ public class CustomerController {
 
         // Call product service
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<String> response = restTemplate.exchange("http://localhost:8090/product", HttpMethod.GET, entity,
+        ResponseEntity<String> response = restTemplate.exchange("http://product:8090/product", HttpMethod.GET, entity,
                 String.class);
 
         result += " + " + response.getBody();

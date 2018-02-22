@@ -1,9 +1,8 @@
 #! /usr/bin/make -f
 
-
 .DEFAULT_GOAL := help
 
-build: build-customer build-product ## Build all
+build: build-customer build-product docker-build ## Build all (mvn & docker)
 
 build-customer: ## Build customer service
 	cd customer; ./mvnw clean install
@@ -23,6 +22,35 @@ run-jaeger: ## Run the Jaeger collector and UI
 
 test: ## Run example requests
 	curl localhost:8080/customer
+
+docker-build: ## Build the Docker images
+	docker build --build-arg JAR_FILE=customer/target/customer-0.0.1-SNAPSHOT.jar -t luebken/customer .
+	docker build --build-arg JAR_FILE=product/target/product-0.0.1-SNAPSHOT.jar -t luebken/product .
+
+docker-run-customer: ## Run the customer service as a Docker container
+	docker run --link product -p 8080:8080 luebken/customer
+
+docker-run-product: ## Run the product service as a Docker container
+	docker run --name product -p 8090:8090 luebken/product --server.port=8090
+
+run-instana-agent: ## Run the instana agent
+	sudo docker run \
+  --detach \
+  --name instana-agent \
+  --volume /var/run/docker.sock:/var/run/docker.sock \
+  --volume /dev:/dev \
+  --volume /sys:/sys \
+  --volume /var/log:/var/log \
+  --volume /Users/mdl/workspace/luebken/ot-example-java/configuration-ot.yaml:/opt/instana/agent/etc/instana/configuration-ot.yaml \
+  --privileged \
+  --net=host \
+  --pid=host \
+  --ipc=host \
+  --env="INSTANA_AGENT_KEY=IYUKKimCQ-6qVTawqCHPEw" \
+  --env="INSTANA_AGENT_ENDPOINT=saas-us-west-2.instana.io" \
+  --env="INSTANA_AGENT_ENDPOINT_PORT=443" \
+  --env="INSTANA_ZONE=LuebkenZone" \
+  instana/agent
 
 # via http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help: ##Shows help message
